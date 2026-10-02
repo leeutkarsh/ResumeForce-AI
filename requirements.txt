@@ -2,3 +2,4 @@ streamlit
 pymupdf
 ollama
 python-dotenv
+docx
