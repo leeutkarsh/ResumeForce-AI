@@ -1,6 +1,66 @@
 import json
 from typing import Any
 
+COVER_LETTER_SCHEMA = {
+    "subject": "",
+    "greeting": "",
+    "paragraphs": [],
+    "sign_off": "",
+    "add_these_yourself": []
+}
+
+def _jd_block(jd, task):
+    if not jd:
+        return ""
+    return (
+        "\nTARGET JOB (structured)\n"
+        "\"\"\"\n"
+        + to_text(jd) +
+        "\n\"\"\"\n\n"
+        "JOB-SPECIFIC INSTRUCTIONS\n"
+        + task +
+        "\n"
+    )
+
+JD_TASKS = {
+    "insight": (
+        "A TARGET JOB is present, so fill 'job_match' fully.\n"
+        "1. match_score (0-100): required skills count about 70%, experience and seniority fit about 30%.\n"
+        "2. Count a skill as matched only if the resume actually shows it.\n"
+        "3. missing_required_skills and missing_nice_to_have must come from the job's lists.\n"
+        "4. experience_gaps: concrete mismatches in years, seniority, or domain.\n"
+        "5. fit_summary: 2 sentences.\n"
+        "6. ats_score now measures fit to this specific job. This overrides scoring rule 6.\n"
+        "7. missing_keywords should be keywords from the job that the resume lacks."
+    ),
+    "improve": (
+        "1. Reword the summary and bullets to emphasise experience relevant to the target job.\n"
+        "2. Use the job's terminology ONLY where the resume genuinely supports it.\n"
+        "3. improved_skills may be reordered so job-relevant skills come first. Do not add any skill.\n"
+        "4. Never add a skill, tool, or result the candidate has not shown.\n"
+        "5. For each missing required skill, put honest advice in add_these_yourself instead of claiming it.\n"
+        "6. priority_actions should focus on closing the biggest gaps for this job."
+    ),
+    "interview": (
+        "1. Focus questions on the job's required skills and responsibilities, where the resume supports them.\n"
+        "2. Include 1 or 2 gap questions about required skills missing from the resume, if the counts allow.\n"
+        "3. Answers to gap questions must be honest: relate to the closest real experience and "
+        "never claim the missing skill. This overrides question rule 8.\n"
+        "4. All answers must still come from the resume only."
+    ),
+}
+
+JD_SCHEMA = {
+    "job_title": "",
+    "company": "",
+    "seniority": "",
+    "required_skills": [],
+    "nice_to_have_skills": [],
+    "responsibilities": [],
+    "keywords": [],
+    "qualifications": [],
+}
+
 INTERVIEW_SCHEMA = {
     "technical": [
         {"question": "", "answer": ""}
@@ -80,7 +140,16 @@ INSIGHT_SCHEMA = {
     "missing_sections": [],
     "missing_keywords": [],
     "red_flags": [],
-    "suggested_roles": []
+    "suggested_roles": [],
+
+    "job_match": {
+        "match_score": 0,
+        "matched_skills": [],
+        "missing_required_skills": [],
+        "missing_nice_to_have": [],
+        "experience_gaps": [],
+        "fit_summary": "",
+    }
 }
 
 IMPROVE_SCHEMA = {
@@ -175,7 +244,7 @@ def structure(data: Any) -> str:
     )
 
 
-def insight(structured_data: Any) -> str:
+def insight(structured_data: Any, jd=None) -> str:
     resume_text = to_text(structured_data)
     schema = schema_text(INSIGHT_SCHEMA)
 
@@ -209,15 +278,17 @@ def insight(structured_data: Any) -> str:
         "10. summary must be 2 to 3 concise sentences.\n"
         "11. Return valid JSON only. Do not use markdown fences.\n"
         "12. Do not add extra keys outside the provided schema.\n\n"
+        "13. When no TARGET JOB section is present, set job_match to match_score 0, empty lists, and an empty fit_summary.\n"
         "STRUCTURED RESUME\n"
         "\"\"\"\n"
         + resume_text +
-        "\n\"\"\"\n\n"
-        "Return only the JSON object."
+        "\n\"\"\"\n"
+        + _jd_block(jd, JD_TASKS["insight"]) +      # "improve" / "interview" in the other two
+        "\nReturn only the JSON object."
     )
 
 
-def improve(structured_data: Any) -> str:
+def improve(structured_data: Any, jd=None) -> str:
     resume_text = to_text(structured_data)
     schema = schema_text(IMPROVE_SCHEMA)
 
@@ -256,8 +327,9 @@ def improve(structured_data: Any) -> str:
         "STRUCTURED RESUME\n"
         "\"\"\"\n"
         + resume_text +
-        "\n\"\"\"\n\n"
-        "Return only the JSON object."
+        "\n\"\"\"\n"
+        + _jd_block(jd, JD_TASKS["insight"]) +      # "improve" / "interview" in the other two
+        "\nReturn only the JSON object."
     )
 
 
@@ -266,7 +338,8 @@ def interview(
     tech_ques: Any,
     behavior_ques: Any,
     hr_ques: Any,
-    project_ques: Any
+    project_ques: Any,
+    jd=None
 ) -> str:
     resume_text = to_text(structured_data)
     schema = schema_text(INTERVIEW_SCHEMA)
@@ -329,6 +402,72 @@ def interview(
         "3. Keep questions and answers practical rather than overly academic.\n"
         "4. Return valid JSON only. Do not use markdown fences.\n"
         "5. Do not add extra keys outside the provided schema.\n\n"
+        "STRUCTURED RESUME\n"
+        "\"\"\"\n"
+        + resume_text +
+        "\n\"\"\"\n"
+        + _jd_block(jd, JD_TASKS["insight"]) +
+        "\nReturn only the JSON object."
+    )
+
+def parse_jd(jd_text: str) -> str:
+    return f"""Extract the job description below into JSON matching this schema exactly.
+Rules:
+1. Use only what is explicitly in the text. Do not infer or add anything.
+2. Keep skill and tool names exactly as written.
+3. Use "" or [] for anything missing. Add no extra keys.
+Schema: {json.dumps(JD_SCHEMA)}
+
+JOB DESCRIPTION:
+{jd_text}"""
+
+def write_cover_letter(structured_data: Any, jd=None) -> str:
+    resume_text = to_text(structured_data)
+    schema = schema_text(COVER_LETTER_SCHEMA)
+
+    if jd:
+        job_part = (
+            "TARGET JOB (structured)\n\"\"\"\n" + to_text(jd) + "\n\"\"\"\n\n"
+            "JOB RULES\n"
+            "1. Tailor the letter to this job's title, company, and responsibilities.\n"
+            "2. Highlight only resume experience that is relevant to the job's required skills.\n"
+            "3. Never claim a required skill the resume does not show. If there is a gap, "
+            "emphasise the closest real experience instead.\n"
+            "4. If the company name is empty, do not guess it.\n\n"
+        )
+    else:
+        job_part = (
+            "No job description was given, so write a general-purpose letter "
+            "that fits the candidate's most likely target role.\n\n"
+        )
+
+    return (
+        "You are ResumeForce AI, an expert career coach who writes honest cover letters.\n\n"
+        "TASK\n"
+        "Write a cover letter using only facts from the structured resume.\n\n"
+        "OUTPUT FORMAT\n"
+        "Return exactly one JSON object matching this schema:\n"
+        + schema +
+        "\n\n"
+        "WRITING RULES\n"
+        "1. subject is a short email subject line.\n"
+        "2. greeting is \"Dear Hiring Manager,\" unless a hiring manager name is given in the job.\n"
+        "3. paragraphs contains 3 or 4 paragraphs, 220 to 320 words in total.\n"
+        "4. Paragraph 1: who the candidate is and why they are applying. "
+        "Paragraphs 2 and 3: the strongest relevant experience or projects, with concrete detail from the resume. "
+        "Last paragraph: a short, confident closing.\n"
+        "5. sign_off is a closing phrase and the candidate's name from the resume, "
+        "for example \"Sincerely,\\nName\".\n"
+        "6. Use simple, natural, professional language. Avoid clichés and buzzwords.\n"
+        "7. Never use placeholders such as [Company] or [Name].\n\n"
+        "FACT RULES\n"
+        "1. Never invent metrics, tools, employers, projects, results, or achievements.\n"
+        "2. Do not repeat the resume line by line. Connect the facts into a story.\n"
+        "3. If a stronger letter would need a detail only the candidate has "
+        "(a metric, a link, the company name), add an instruction to add_these_yourself.\n"
+        "4. Return valid JSON only. Do not use markdown fences.\n"
+        "5. Do not add extra keys outside the provided schema.\n\n"
+        + job_part +
         "STRUCTURED RESUME\n"
         "\"\"\"\n"
         + resume_text +
