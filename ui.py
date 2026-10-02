@@ -1,8 +1,9 @@
+import base64
 import json
 from html import escape
 import streamlit as st
 
-st.set_page_config(page_title="ResumeForce AI", page_icon="📄", layout="centered")
+st.set_page_config(page_title="ResumeForce AI", page_icon="icon.png", layout="centered")
 
 try:
     import main as engine
@@ -10,10 +11,6 @@ except RuntimeError as error:  # e.g. missing OLLAMA_API_KEY
     st.error(str(error))
     st.stop()
 
-
-# ----------------------------------------------------------------------------
-# Styling (kept small: spacing, a font for headings, one accent colour, chips)
-# ----------------------------------------------------------------------------
 st.markdown(
     """
     <style>
@@ -43,29 +40,24 @@ st.markdown(
         background: #0f766e; border-color: #0f766e; color: #fff;
     }
     div[data-testid="stProgress"] > div > div > div > div { background-color: var(--accent); }
+    
+    .brand-row { display: flex; align-items: center; gap: .5rem; }
+    .brand-row img { border-radius: 10px; }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-
-# ----------------------------------------------------------------------------
-# Small helpers (LLM output is not guaranteed to match the schema, so be forgiving)
-# ----------------------------------------------------------------------------
 def as_list(value):
     if isinstance(value, list):
         return value
     return [] if value in (None, "") else [value]
 
-
 def txt(value) -> str:
     return "" if value is None else str(value).strip()
 
-
 def md(value) -> str:
-    """Text safe for st.markdown ($ would otherwise start a LaTeX block)."""
     return txt(value).replace("$", "\\$")
-
 
 def score(value) -> int:
     try:
@@ -114,9 +106,6 @@ def title_line(*parts):
     return " · ".join(md(p) for p in parts if txt(p))
 
 
-# ----------------------------------------------------------------------------
-# Result sections
-# ----------------------------------------------------------------------------
 def show_overview(report: dict):
     overall, ats = report.get("overall_score"), report.get("ats_score")
     c1, c2, c3 = st.columns(3)
@@ -315,11 +304,19 @@ def show_resume(structured: dict):
             st.subheader(label)
             bullets(items)
 
+ICON = "icon.png"
+with open(ICON, "rb") as f:
+    logo_b64 = base64.b64encode(f.read()).decode()
 
-# ----------------------------------------------------------------------------
-# Page
-# ----------------------------------------------------------------------------
-st.markdown('<p class="brand">ResumeForce</p>', unsafe_allow_html=True)
+st.markdown(
+    f"""
+    <div class="brand-row">
+        <img src="data:image/png;base64,{logo_b64}" width="26">
+        <p class="brand">ResumeForce AI</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown(
     '<p class="tagline">Upload a resume. Get scores, sharper wording and interview prep.</p>',
     unsafe_allow_html=True,
