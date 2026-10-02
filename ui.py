@@ -2,6 +2,7 @@ import base64
 import json
 from html import escape
 import streamlit as st
+from docx_letter import build_cover_letter_docx
 
 st.set_page_config(page_title="ResumeForce AI", page_icon="icon.png", layout="centered")
 
@@ -304,6 +305,90 @@ def show_resume(structured: dict):
             st.subheader(label)
             bullets(items)
 
+def letter_to_text(letter: dict, fallback_name: str = "") -> str:
+    parts = [txt(letter.get("greeting"))]
+    parts += [txt(p) for p in as_list(letter.get("paragraphs")) if txt(p)]
+    parts.append(txt(letter.get("sign_off")) or fallback_name)
+    return "\n\n".join(p for p in parts if p)
+
+
+def show_cover_letter(letter: dict, structured: dict, jd=None):
+    jd = jd if isinstance(jd, dict) else {}
+
+    if txt(letter.get("subject")):
+        st.caption(f"Subject: {txt(letter['subject'])}")
+
+    text = letter_to_text(letter, txt(structured.get("name")))
+    edited = st.text_area("Edit before you use it", value=text, height=420, key="letter_text")
+    st.caption("After editing, press Ctrl+Enter (or click outside the box) before downloading.")
+
+    b1, b2, _ = st.columns([1, 3, 2])
+    b1.download_button(
+        "Download as .txt",
+        data=edited,
+        file_name="cover_letter.txt",
+        mime="text/plain",
+    )
+
+    try:
+        docx_bytes = build_cover_letter_docx(
+            edited,
+            name=txt(structured.get("name")),
+            email=txt(structured.get("email")),
+            phone=txt(structured.get("phone")),
+            location=txt(structured.get("location")),
+            links=[txt(l) for l in as_list(structured.get("links")) if txt(l)],
+            subject=txt(letter.get("subject")),
+            company=txt(jd.get("company")),
+        )
+        b2.download_button(
+            "Download as .docx",
+            data=docx_bytes,
+            file_name="cover_letter.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            type="primary",
+        )
+    except Exception as error:
+        b2.caption(f"Word export unavailable: {error}")
+
+    todo = as_list(letter.get("add_these_yourself"))
+    if todo:
+        st.subheader("Make it stronger")
+        st.caption("These need real facts from you, so they were not invented.")
+        for item in todo:
+            st.info(md(item), icon="✍️")
+
+def show_job_match(report: dict, jd: dict):
+    match = report.get("job_match")
+    match = match if isinstance(match, dict) else {}
+
+    title = title_line(jd.get("job_title"), jd.get("company"))
+    if title:
+        st.markdown(f"**Target role:** {title}")
+
+    c1, c2 = st.columns([1, 2], vertical_alignment="center")
+    score_card(c1, "Job match", match.get("match_score"))
+    with c2:
+        st.markdown(md(match.get("fit_summary")) or "_No summary generated._")
+
+    left, right = st.columns(2)
+    with left:
+        st.subheader("Matched skills")
+        chips(match.get("matched_skills"))
+    with right:
+        st.subheader("Missing required skills")
+        chips(match.get("missing_required_skills"), "warn")
+
+    nice = as_list(match.get("missing_nice_to_have"))
+    if nice:
+        st.subheader("Missing nice-to-have")
+        chips(nice, "soft")
+
+    gaps = as_list(match.get("experience_gaps"))
+    if gaps:
+        st.subheader("Experience gaps")
+        bullets(gaps)
+
 ICON = "icon.png"
 with open(ICON, "rb") as f:
     logo_b64 = base64.b64encode(f.read()).decode()
@@ -324,13 +409,23 @@ st.markdown(
 
 with st.form("inputs"):
     upload = st.file_uploader("Resume", type=["pdf"], help="Text-based PDFs only. Scanned images can't be read.")
-
     st.markdown("**Interview questions per topic**")
     c1, c2, c3, c4 = st.columns(4)
     tech = c1.number_input("Technical", 0, 20, 3)
     project = c2.number_input("Projects", 0, 20, 2)
     behavioral = c3.number_input("Behavioral", 0, 20, 2)
     hr = c4.number_input("HR", 0, 20, 2)
+    jd_text = st.text_area(
+        "Job description (optional)",
+        height=200,
+        placeholder="Paste the job posting to tailor the review, rewrites and interview prep.",
+        help="Optional. Tailors the match score, rewrites and interview questions to this role."
+    )
+    want_letter = st.toggle(
+        "Generate cover letter",
+        value=False,
+        help="Writes a cover letter from your resume. Add a job description for a tailored one.",
+    )
 
     submitted = st.form_submit_button("Analyse resume", type="primary")
 
@@ -353,12 +448,15 @@ if submitted:
                     behavioral=int(behavioral),
                     hr=int(hr),
                     on_change=on_change,
+                    jd_text=jd_text,
+                    cover_letter=want_letter
                 )
             except Exception as error:
                 box.update(label="Analysis failed", state="error", expanded=True)
                 st.error(f"{error}")
             else:
                 box.update(label="Analysis complete", state="complete", expanded=False)
+                st.session_state.pop("letter_text", None)
                 st.session_state["result"] = {"file": upload.name, **result}
 
 result = st.session_state.get("result")
@@ -376,14 +474,30 @@ if result:
         mime="application/json",
     )
 
-    overview, improvements, interview, parsed = st.tabs(
-        ["Overview", "Improvements", "Interview prep", "Parsed resume"]
+    if result.get("jd_error"):
+        st.warning(f"{result['jd_error']} Showing a general review instead.")
+
+    if result.get("cover_letter_error"):
+        st.warning(f"Cover letter could not be generated: {result['cover_letter_error']}")
+
+    sections = {
+        "Overview": lambda: show_overview(result["report"]),
+        "Improvements": lambda: show_improvements(result["better"], result["structured"]),
+        "Interview prep": lambda: show_questions(result["questions"]),
+        "Parsed resume": lambda: show_resume(result["structured"]),
+    }
+    if result.get("jd"):
+        sections = {
+            "Overview": sections["Overview"],
+            "Job match": lambda: show_job_match(result["report"], result["jd"]),
+            **{k: v for k, v in sections.items() if k != "Overview"},
+        }
+
+    if result.get("cover_letter"):
+        sections["Cover letter"] = lambda: show_cover_letter(
+            result["cover_letter"], result["structured"], result.get("jd")
     )
-    with overview:
-        show_overview(result["report"])
-    with improvements:
-        show_improvements(result["better"], result["structured"])
-    with interview:
-        show_questions(result["questions"])
-    with parsed:
-        show_resume(result["structured"])
+
+    for tab, render in zip(st.tabs(list(sections)), sections.values()):
+        with tab:
+            render()
