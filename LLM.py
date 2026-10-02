@@ -1,7 +1,7 @@
+import streamlit as st
 import json
 import os
 import time
-
 from dotenv import load_dotenv
 from ollama import Client, ResponseError
 
@@ -15,10 +15,23 @@ SYSTEM_PROMPT = (
     "Never return markdown or text outside JSON."
 )
 
-API_KEY = os.getenv("OLLAMA_API_KEY")
+def get_api_key():
+    key = os.getenv("OLLAMA_API_KEY")  # local .env (or env var)
+    if key:
+        return key
+    try:
+        return st.secrets.get("OLLAMA_API_KEY")  # Streamlit Cloud secrets
+    except Exception:  # streamlit not installed or no secrets configured
+        return None
+
+
+API_KEY = get_api_key()
 
 if not API_KEY:
-    raise RuntimeError("OLLAMA_API_KEY is missing. Add it to your .env file.")
+    raise RuntimeError(
+        "OLLAMA_API_KEY is missing. Add it to .env locally "
+        "or to Secrets on Streamlit Cloud."
+    )
 
 client = Client(
     host="https://ollama.com",
