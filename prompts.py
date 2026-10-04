@@ -323,7 +323,7 @@ def insight(structured_data: Any, jd=None, links=None) -> str:
         "\"\"\"\n"
         + resume_text +
         "\n\"\"\"\n"
-        + _jd_block(jd, JD_TASKS["insight"]) +      # "improve" / "interview" in the other two
+        + _jd_block(jd, JD_TASKS["insight"]) +
         _links_block(links, LINK_TASKS["insight"]) +
         "\nReturn only the JSON object."
     )
@@ -369,7 +369,7 @@ def improve(structured_data: Any, jd=None, links=None) -> str:
         "\"\"\"\n"
         + resume_text +
         "\n\"\"\"\n"
-        + _jd_block(jd, JD_TASKS["insight"]) +      # "improve" / "interview" in the other two
+        + _jd_block(jd, JD_TASKS["improve"]) +
         _links_block(links, LINK_TASKS["improve"]) +
         "\nReturn only the JSON object."
     )
@@ -448,7 +448,7 @@ def interview(
         "\"\"\"\n"
         + resume_text +
         "\n\"\"\"\n"
-        + _jd_block(jd, JD_TASKS["insight"]) +
+        + _jd_block(jd, JD_TASKS["interview"]) +
         "\nReturn only the JSON object."
     )
 
