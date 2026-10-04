@@ -1,0 +1,5 @@
+streamlit
+pymupdf
+ollama
+python-dotenv
+python-docx
