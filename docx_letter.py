@@ -114,7 +114,7 @@ def _clean_link(link: str) -> str:
 
 def _get_link_details(link):
     link = str(link).strip()
-    if not link:
+    if not link or link.lower().startswith(("mailto:", "tel:")):
         return None
 
     url = link if re.match(r"^https?://", link, re.I) else f"https://{link}"
@@ -157,10 +157,14 @@ def _add_contact_line(doc, email, phone, location, links):
     if location and location.strip():
         items.append(("⌖ " + location.strip(), None))
 
-    for link in (links or [])[:2]:
+    shown = 0
+    for link in links or []:
         details = _get_link_details(link)
         if details:
             items.append(details)
+            shown += 1
+            if shown == 2:
+                break
 
     for i, (label, url) in enumerate(items):
         if i:
