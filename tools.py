@@ -467,7 +467,8 @@ def collect_links(data):
         for match in LINK_PATTERN.findall(text):
             url = normalise_url(match.rstrip(".,;:!?"))
             if url:
-                found.setdefault(url.rstrip("/").lower(), url)
+                key = re.sub(r"^https?://(www\.)?", "", url).rstrip("/").lower()
+                found.setdefault(key, url)
     return list(found.values())
 
 
