@@ -1,0 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* ==========================================================================
+   SETTINGS  -  change values here, nothing below needs to be touched.
+   After saving, press R in the browser (or click Rerun) to see the change.
+   ========================================================================== */
+:root {
+    /* ---- Spacing (the ones you will change most) ---- */
+    --gap: .9rem;               /* space between any two elements on the page */
+    --gap-tight: .65rem;        /* space between elements inside a bordered card */
+    --col-gap: 1.5rem;          /* space between side-by-side columns */
+    --heading-before: 1.5rem;   /* extra space above every heading */
+    --heading-after: .6rem;     /* space between a heading and what follows it */
+    --caption-pull: -.35rem;    /* pulls small grey captions closer to the thing above */
+    --para-gap: .65rem;         /* between paragraphs inside one text block */
+    --list-gap: .45rem;         /* between bullet points */
+    --list-indent: 1.5rem;      /* how far bullets are indented */
+    --panel-top: .5rem;         /* space between the tab bar and the tab content */
+
+    /* ---- Page ---- */
+    --page-width: 1080px;
+    --page-top: 4.75rem;        /* keep above 4rem or the top bar covers the logo */
+    --page-bottom: 6rem;
+    --page-side: 1.75rem;
+    --hero-gap: 2.5rem;         /* space under the logo row */
+
+    /* ---- Padding inside boxes ---- */
+    --box-pad-y: 1.15rem;       /* bordered cards (projects, jobs, education) */
+    --box-pad-x: 1.4rem;
+    --card-pad-y: 1.25rem;      /* score cards and section-score bars */
+    --card-pad-x: 1.5rem;
+    --form-pad: 2rem;           /* the upload form */
+    --expander-pad-y: .9rem;    /* clickable rows */
+    --expander-pad-x: 1.1rem;
+    --note-pad-y: .9rem;        /* green, amber and red callouts */
+    --note-pad-x: 1.1rem;
+    --chip-pad-y: .3rem;
+    --chip-pad-x: .85rem;
+    --chip-gap: .4rem;
+
+    /* ---- Corners ---- */
+    --radius-card: 16px;
+    --radius-box: 14px;
+    --radius-ctrl: 10px;
+    --radius-form: 20px;
+
+    /* ---- Text ---- */
+    --font: 'Manrope', system-ui, sans-serif;
+    --text: .95rem;
+    --text-small: .85rem;
+    --leading: 1.6;
+    --h2: 1.5rem;
+    --h3: 1.1rem;
+    --hero: clamp(2rem, 4.6vw, 3.1rem);
+
+    /* ---- Colors ---- */
+    --ink: #111827;
+    --muted: #667085;
+    --line: #e4e7ec;
+    --soft: #f6f7f9;
+    --track: #eceff3;
+    --accent: #0d9488;
+    --accent-deep: #0f766e;
+    --accent-tint: #e9f7f5;
+    --accent-line: #bfe6e1;
+    --good: #0d9488;            /* score 70 and above */
+    --mid: #d97706;             /* score 50 to 69 */
+    --bad: #dc2626;             /* score below 50 */
+    --good-bg: #f0fbf9;  --good-line: #c6ebe5;
+    --warn-bg: #fffaeb;  --warn-line: #fde7b0;  --warn-edge: #f79009;
+    --bad-bg:  #fef3f2;  --bad-line:  #fecdca;  --bad-edge:  #d92d20;
+    --info-edge: #98a2b3;
+
+    /* ---- Set automatically by ui.py for each score card. Do not edit. ---- */
+    --p: 0;                     /* score from 0 to 100 */
+    --c: var(--good);           /* ring color picked from the score */
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+.stApp, [data-testid="stAppViewContainer"] { background: #fff; color: var(--ink); line-height: 1.55; }
+.stApp, .stApp p, .stApp li, .stApp label, .stApp input, .stApp textarea, .stApp button,
+.stApp summary, .stApp h1, .stApp h2, .stApp h3, .stApp h4 { font-family: var(--font); }
+[data-testid="stIconMaterial"] { font-family: 'Material Symbols Rounded' !important; }
+#MainMenu, footer, [data-testid="stDecoration"], [data-testid="stHeaderActionElements"] { display: none; }
+[data-testid="stHeader"] { background: #fff; height: 3.25rem; }
+.block-container { max-width: var(--page-width); padding: var(--page-top) var(--page-side) var(--page-bottom); }
+a { color: var(--accent-deep); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* One rule decides the space between elements. */
+[data-testid="stVerticalBlock"] { gap: var(--gap); }
+.stApp [data-testid="stHorizontalBlock"] { gap: var(--col-gap); }
+
+/* ==========================================================================
+   TEXT: Streamlit adds hidden negative margins under text blocks.
+   They are reset here so the settings above are the only spacing.
+   ========================================================================== */
+.stApp [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+.stApp [data-testid="stMarkdownContainer"] > *:last-child { margin-bottom: 0 !important; }
+.stApp [data-testid="stMarkdownContainer"] p { margin: 0 0 var(--para-gap); line-height: var(--leading); }
+.stApp [data-testid="stMarkdownContainer"] ul,
+.stApp [data-testid="stMarkdownContainer"] ol { margin: 0 0 var(--para-gap); padding-left: var(--list-indent); }
+.stApp [data-testid="stMarkdownContainer"] li { margin: 0 0 var(--list-gap); padding-left: .3rem; line-height: var(--leading); }
+.stApp [data-testid="stMarkdownContainer"] li:last-child { margin-bottom: 0; }
+.stApp [data-testid="stMarkdownContainer"] li p { margin: 0; }
+.stApp [data-testid="stMarkdownContainer"] li::marker { color: var(--accent); }
+
+[data-testid="stCaptionContainer"] { color: var(--muted); line-height: 1.5; margin-top: var(--caption-pull); }
+
+.stApp h2, .stApp h3, .stApp h4 {
+    font-weight: 700; letter-spacing: -.02em; color: var(--ink); line-height: 1.3;
+    margin: 0 0 calc(var(--heading-after) - var(--gap)) !important;
+}
+.stApp h2 { font-size: var(--h2); padding: 0; }
+.stApp h3 { font-size: var(--h3); padding: var(--heading-before) 0 0; }
+.stApp hr { border-color: var(--line); margin: var(--heading-before) 0 var(--gap); }
+
+/* ==========================================================================
+   HERO
+   ========================================================================== */
+.topbar { display: flex; align-items: center; gap: .65rem; margin-bottom: var(--hero-gap); }
+.topbar img { width: 32px; height: 32px; border-radius: 8px; }
+.topbar span { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; }
+.stApp .hero-title { font-size: var(--hero); font-weight: 800; line-height: 1.1; letter-spacing: -.035em;
+                     margin: 0 0 1rem !important; padding: 0; max-width: 22ch; }
+.tagline { color: var(--muted); font-size: 1.1rem; line-height: 1.55; margin: 0 0 1.25rem; max-width: 52ch; }
+
+/* ==========================================================================
+   FORM AND CONTROLS
+   ========================================================================== */
+[data-testid="stForm"] { border: 1px solid var(--line); border-radius: var(--radius-form); padding: var(--form-pad);
+    background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 16px 40px -20px rgba(16,24,40,.14); }
+.field-title { font-weight: 700; font-size: var(--text); line-height: 1.3; margin: 0 0 .2rem; }
+.field-hint { color: var(--muted); font-size: var(--text-small); line-height: 1.45; margin: 0 0 -.2rem; }
+
+div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="select"] > div {
+    background: #fff; border: 1px solid #d0d5dd; border-radius: var(--radius-ctrl); }
+[data-baseweb="base-input"] { background: #fff; }
+div[data-baseweb="input"]:focus-within, div[data-baseweb="textarea"]:focus-within {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(13,148,136,.16); }
+[data-testid="stFileUploaderDropzone"] { border: 1.5px dashed #c5ccd6; background: var(--soft);
+    border-radius: var(--radius-box); padding: 1.4rem; transition: border-color .15s, background .15s; }
+[data-testid="stFileUploaderDropzone"]:hover { border-color: var(--accent); background: var(--accent-tint); }
+
+[data-testid^="stBaseButton-secondary"], [data-testid="stDownloadButton"] button {
+    border-radius: var(--radius-ctrl); font-weight: 600; background: #fff; color: var(--ink);
+    border: 1px solid #d0d5dd; transition: border-color .15s, color .15s; }
+[data-testid^="stBaseButton-secondary"]:hover, [data-testid="stDownloadButton"] button:hover {
+    border-color: var(--accent); color: var(--accent-deep); }
+button[kind="primary"], button[kind="primaryFormSubmit"],
+button[data-testid="stBaseButton-primary"], button[data-testid="stBaseButton-primaryFormSubmit"] {
+    background: var(--accent); border: 1px solid var(--accent); color: #fff; border-radius: 12px; font-weight: 700; }
+button[kind="primary"]:hover, button[kind="primaryFormSubmit"]:hover,
+button[data-testid="stBaseButton-primary"]:hover, button[data-testid="stBaseButton-primaryFormSubmit"]:hover {
+    background: var(--accent-deep); border-color: var(--accent-deep); color: #fff; }
+button[kind="primary"] p, button[kind="primaryFormSubmit"] p,
+button[data-testid="stBaseButton-primary"] p, button[data-testid="stBaseButton-primaryFormSubmit"] p { color: #fff; margin: 0; }
+[data-testid="stFormSubmitButton"] button { width: 100%; padding: .85rem 1rem; font-size: 1rem; }
+
+/* ==========================================================================
+   TABS, EXPANDERS, ALERTS
+   ========================================================================== */
+[data-baseweb="tab-list"] { gap: .25rem; border-bottom: 1px solid var(--line); }
+[data-baseweb="tab-border"] { display: none; }
+[data-baseweb="tab-highlight"] { background: var(--accent); height: 2px; }
+[data-baseweb="tab-panel"] { padding-top: var(--panel-top); }
+button[data-baseweb="tab"] { background: transparent; padding: .75rem .95rem; color: var(--muted); height: auto; }
+button[data-baseweb="tab"] p { font-weight: 600; font-size: var(--text); color: inherit; margin: 0; }
+button[data-baseweb="tab"][aria-selected="true"] { color: var(--ink); }
+
+[data-testid="stExpander"] { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; }
+[data-testid="stExpander"] summary { padding: var(--expander-pad-y) var(--expander-pad-x); font-weight: 600; }
+[data-testid="stExpander"] summary p { font-size: var(--text); line-height: 1.45; margin: 0; }
+[data-testid="stExpander"] summary:hover { background: var(--soft); }
+[data-testid="stExpanderDetails"] { padding: .25rem var(--expander-pad-x) var(--expander-pad-y); }
+[data-testid="stAlert"] { border-radius: var(--radius-box); }
+div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: var(--radius-box); }
+
+/* ==========================================================================
+   BORDERED CARDS  (every st.container(border=True) is a .card-marker card)
+   ========================================================================== */
+.stApp [data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] .card-marker),
+.stApp .element-container:has(> [data-testid="stMarkdown"] .card-marker) { display: none; }
+
+.stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(.card-marker):not(:has(div[data-testid="stVerticalBlockBorderWrapper"] .card-marker)) {
+    padding: var(--box-pad-y) var(--box-pad-x); border-color: var(--line); }
+.stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(.card-marker):not(:has(div[data-testid="stVerticalBlockBorderWrapper"] .card-marker)) [data-testid="stVerticalBlock"] {
+    gap: var(--gap-tight); }
+
+/* ==========================================================================
+   CHIPS, SCORE CARDS, BARS, CALLOUTS
+   ========================================================================== */
+.chip { display: inline-block; padding: var(--chip-pad-y) var(--chip-pad-x); margin: .2rem var(--chip-gap) .2rem 0;
+        border-radius: 999px; font-size: var(--text-small); font-weight: 600; line-height: 1.4;
+        background: var(--accent-tint); color: var(--accent-deep); border: 1px solid var(--accent-line); }
+.chip.warn { background: var(--bad-bg); color: #b42318; border-color: var(--bad-line); }
+.chip.soft { background: var(--soft); color: #475467; border-color: var(--line); }
+
+.card { border: 1px solid var(--line); border-radius: var(--radius-card); padding: var(--card-pad-y) var(--card-pad-x); background: #fff; }
+.score-card { display: flex; align-items: center; gap: 1.25rem; min-height: 132px; }
+.ring { width: 84px; height: 84px; border-radius: 50%; flex: none; display: grid; place-items: center; position: relative;
+        background: conic-gradient(var(--c) calc(var(--p) * 1%), var(--track) 0); }
+.ring::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
+.ring b { position: relative; font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+.card-label { font-weight: 700; font-size: 1rem; line-height: 1.3; }
+.card-band { font-weight: 700; font-size: .9rem; margin-top: .2rem; color: var(--c); }
+.stat-card { min-height: 132px; display: flex; flex-direction: column; justify-content: center; gap: .2rem; }
+.stat-value { font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+.stat-note { color: var(--muted); font-size: var(--text-small); }
+.lede { font-size: 1.05rem; line-height: 1.7; color: #344054; max-width: 75ch; }
+
+.bars { display: grid; gap: 1rem; }
+.bar-row { display: grid; grid-template-columns: minmax(120px, 200px) 1fr 2.2rem; align-items: center; gap: 1rem; }
+.bar-name { font-weight: 600; font-size: .92rem; }
+.bar { height: 8px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 99px; }
+.bar-num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.notes { display: grid; gap: var(--gap); }
+.note { border: 1px solid; border-left-width: 4px; border-radius: 12px; padding: var(--note-pad-y) var(--note-pad-x);
+        font-size: var(--text); line-height: 1.55; }
+.note.good { background: var(--good-bg); border-color: var(--good-line); border-left-color: var(--accent); }
+.note.warn { background: var(--warn-bg); border-color: var(--warn-line); border-left-color: var(--warn-edge); }
+.note.bad  { background: var(--bad-bg);  border-color: var(--bad-line);  border-left-color: var(--bad-edge); }
+.note.info { background: var(--soft);    border-color: var(--line);      border-left-color: var(--info-edge); }
+
+.result-head { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.result-title { font-size: var(--h2); font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+.file-pill { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: .25rem .65rem;
+             font-size: .9rem; font-weight: 600; color: #475467; overflow-wrap: anywhere; }
+
+/* ==========================================================================
+   SMALL SCREENS
+   ========================================================================== */
+@media (max-width: 640px) {
+    .block-container { padding: 4.25rem 1rem 4rem; }
+    .stApp [data-testid="stHorizontalBlock"] { gap: var(--gap); }
+    .bar-row { grid-template-columns: 1fr 2.2rem; gap: .5rem 1rem; }
+    .bar-name { grid-column: 1 / -1; }
+    [data-testid="stForm"] { padding: 1.15rem; }
+    .score-card { min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
