@@ -14,7 +14,7 @@ except RuntimeError as error:  # e.g. missing OLLAMA_API_KEY
     st.error(str(error))
     st.stop()
 
-def load_css(name="style.css"):
+def load_css(name="Style.css"):
     """All spacing, colors and fonts live in style.css (settings are at the top of that file)."""
     try:
         css = (Path(__file__).parent / name).read_text(encoding="utf-8")
