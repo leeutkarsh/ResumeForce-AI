@@ -3,3 +3,4 @@ pymupdf
 ollama
 python-dotenv
 python-docx
+httpx
