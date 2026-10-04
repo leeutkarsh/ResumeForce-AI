@@ -251,11 +251,13 @@ def unreadable_link(page):
             "concerns": [],
             "skills_shown": [],
         }
+    error = str(page.get("error"))
+    broken = "not found" in error.lower() or "404" in error
     return {
         "url": page.get("url", ""),
-        "summary": "This link could not be opened.",
+        "summary": "This link could not be opened." if broken else f"This link could not be checked: {error}",
         "strengths": [],
-        "concerns": [str(page.get("error"))],
+        "concerns": [error] if broken else [],
         "skills_shown": [],
     }
 
