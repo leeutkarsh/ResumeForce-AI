@@ -14,7 +14,7 @@ except RuntimeError as error:  # e.g. missing OLLAMA_API_KEY
     st.error(str(error))
     st.stop()
 
-def load_css(name="Style.css"):
+def load_css(name="style.css"):
     """All spacing, colors and fonts live in style.css (settings are at the top of that file)."""
     try:
         css = (Path(__file__).parent / name).read_text(encoding="utf-8")
@@ -188,7 +188,7 @@ def show_overview(report: dict, links=None):
             st.caption("Nothing to show.")
         for item in weaknesses:
             if isinstance(item, dict):
-                label = title_line(item.get("section", "").title(), item.get("issue"))
+                label = title_line(txt(item.get("section")).title(), item.get("issue"))
                 with st.expander(label or "Issue"):
                     st.markdown(md(item.get("why_it_matters")))
             else:
@@ -302,6 +302,12 @@ def show_questions(questions: dict):
         st.info("No interview questions were requested. Set a count above 0 and analyse again.")
 
 
+def resume_link_url(link: str) -> str:
+    if link.lower().startswith(("http://", "https://", "mailto:", "tel:")):
+        return link
+    return "https://" + link
+
+
 def show_resume(structured: dict):
     st.header(txt(structured.get("name")) or "Parsed resume")
     contact = [txt(structured.get(k)) for k in ("email", "phone", "location")]
@@ -309,7 +315,7 @@ def show_resume(structured: dict):
 
     links = [txt(link) for link in as_list(structured.get("links")) if txt(link)]
     if links:
-        st.markdown("  ".join(f"[{escape(link)}]({link})" for link in links))
+        st.markdown("  ".join(f"[{escape(link)}]({resume_link_url(link)})" for link in links))
 
     if txt(structured.get("summary")):
         st.markdown(md(structured["summary"]))
@@ -369,7 +375,7 @@ def show_cover_letter(letter: dict, structured: dict, jd=None):
         st.caption(f"Subject: {txt(letter['subject'])}")
 
     text = letter_to_text(letter, txt(structured.get("name")))
-    edited = st.text_area("Edit before you use it", value=text, height=100, key="letter_text")
+    edited = st.text_area("Edit before you use it", value=text, height=400, key="letter_text")
     st.caption("After editing, press Ctrl+Enter (or click outside the box) before downloading.")
 
     b1, b2, _ = st.columns([1, 3, 2])
